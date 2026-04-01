@@ -27,10 +27,21 @@
 
 <script>
 
-// Encryption Formula: C = (P + k) mod 26
+// Function to validate key
+function isValidKey(k) {
+    return Number.isInteger(k) && k >= 0 && k <= 25;
+}
+
+// Encryption: C = (P + k) mod 26
 function encrypt() {
     let text = document.getElementById("text").value;
     let k = parseInt(document.getElementById("key").value);
+    
+    if (!isValidKey(k)) {
+        document.getElementById("output").innerText = "Error: Key must be between 0 and 25";
+        return;
+    }
+
     let result = "";
 
     for (let i = 0; i < text.length; i++) {
@@ -40,9 +51,7 @@ function encrypt() {
             let code = text.charCodeAt(i);
             let base = (code >= 65 && code <= 90) ? 65 : 97;
 
-            // Formula used here
             let newChar = ((code - base + k) % 26) + base;
-
             result += String.fromCharCode(newChar);
         } else {
             result += ch;
@@ -52,10 +61,16 @@ function encrypt() {
     document.getElementById("output").innerText = result;
 }
 
-// Decryption Formula: P = (C - k) mod 26
+// Decryption: P = (C - k) mod 26
 function decrypt() {
     let text = document.getElementById("text").value;
     let k = parseInt(document.getElementById("key").value);
+
+    if (!isValidKey(k)) {
+        document.getElementById("output").innerText = "Error: Key must be between 0 and 25";
+        return;
+    }
+
     let result = "";
 
     for (let i = 0; i < text.length; i++) {
@@ -65,9 +80,7 @@ function decrypt() {
             let code = text.charCodeAt(i);
             let base = (code >= 65 && code <= 90) ? 65 : 97;
 
-            // Formula used here
             let newChar = ((code - base - k + 26) % 26) + base;
-
             result += String.fromCharCode(newChar);
         } else {
             result += ch;

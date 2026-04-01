@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +17,7 @@
         padding: 20px;
         border-radius: 8px;
     }
-    input, button {
+    input, select, button {
         width: 100%;
         padding: 10px;
         margin: 10px 0;
@@ -34,7 +35,12 @@
     <h2>Diffie-Hellman Key Exchange</h2>
 
     <label>Prime Number (q):</label>
-    <input type="number" id="q">
+    <input type="number" id="q" onchange="populateRoots()">
+
+    <label>Select Primitive Root:</label>
+    <select id="primitiveRoot">
+        <option value="">-- Select root --</option>
+    </select>
 
     <label>Private Key (XA):</label>
     <input type="number" id="xa">
@@ -54,33 +60,13 @@
 </div>
 
 <script>
-// Check if number is prime
+// Prime check
 function isPrime(n) {
     if (n <= 1) return false;
     for (let i = 2; i <= Math.sqrt(n); i++) {
         if (n % i === 0) return false;
     }
     return true;
-}
-
-// Find primitive root
-function findPrimitiveRoot(p) {
-    let requiredSet = new Set();
-    for (let i = 1; i < p; i++) {
-        requiredSet.add(i);
-    }
-
-    for (let g = 2; g < p; g++) {
-        let actualSet = new Set();
-        for (let k = 1; k < p; k++) {
-            actualSet.add(powerMod(g, k, p));
-        }
-        if (requiredSet.size === actualSet.size &&
-            [...requiredSet].every(v => actualSet.has(v))) {
-            return g;
-        }
-    }
-    return null;
 }
 
 // Modular exponentiation
@@ -98,27 +84,66 @@ function powerMod(base, exp, mod) {
     return result;
 }
 
+// Find ALL primitive roots (only positive roots)
+function findPrimitiveRoots(p) {
+    let requiredSet = new Set();
+    for (let i = 1; i < p; i++) requiredSet.add(i);
+
+    let roots = [];
+
+    for (let g = 2; g < p; g++) { // ensures NO negative roots
+        let actualSet = new Set();
+
+        for (let k = 1; k < p; k++) {
+            actualSet.add(powerMod(g, k, p));
+        }
+
+        if (requiredSet.size === actualSet.size &&
+            [...requiredSet].every(v => actualSet.has(v))) {
+            roots.push(g);
+        }
+    }
+    return roots;
+}
+
+// Populate dropdown
+function populateRoots() {
+    let q = parseInt(document.getElementById("q").value);
+    let dropdown = document.getElementById("primitiveRoot");
+    dropdown.innerHTML = '<option value="">-- Select root --</option>';
+
+    if (!isPrime(q)) return;
+
+    let roots = findPrimitiveRoots(q);
+
+    roots.forEach(root => {
+        let option = document.createElement("option");
+        option.value = root;
+        option.textContent = root;
+        dropdown.appendChild(option);
+    });
+}
+
 // Main function
 function generateKeys() {
     let q = parseInt(document.getElementById("q").value);
     let xa = parseInt(document.getElementById("xa").value);
     let xb = parseInt(document.getElementById("xb").value);
+    let a = parseInt(document.getElementById("primitiveRoot").value);
     let output = document.getElementById("output");
 
-    // Validation
     if (!isPrime(q)) {
         output.innerHTML = "❌ q must be a prime number.";
         return;
     }
 
-    if (xa <= 1 || xa >= q || xb <= 1 || xb >= q) {
-        output.innerHTML = "❌ Private keys must satisfy: 1 < XA, XB < q";
+    if (!a) {
+        output.innerHTML = "❌ Please select a primitive root.";
         return;
     }
 
-    let a = findPrimitiveRoot(q);
-    if (!a) {
-        output.innerHTML = "❌ Could not find primitive root.";
+    if (xa <= 1 || xa >= q || xb <= 1 || xb >= q) {
+        output.innerHTML = "❌ Private keys must satisfy: 1 < XA, XB < q";
         return;
     }
 
@@ -131,7 +156,7 @@ function generateKeys() {
     let KB = powerMod(YA, xb, q);
 
     output.innerHTML = `
-        <b>Primitive Root (auto-selected):</b> ${a} <br><br>
+        <b>Selected Primitive Root:</b> ${a} <br><br>
         <b>Public Keys:</b><br>
         YA = ${YA}<br>
         YB = ${YB}<br><br>
