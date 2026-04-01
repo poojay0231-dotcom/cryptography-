@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rail Fence Cipher</title>
+<style>
+    body { font-family: Arial; background:#f2f2f2; display:flex; justify-content:center; padding:40px;}
+    .box { background:white; padding:20px; border-radius:10px; width:300px; box-shadow:0 0 10px #ccc;}
+    input, button { width:100%; padding:8px; margin:8px 0;}
+    button { background:#007bff; color:white; border:none; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="box">
+    <h3>Rail Fence Cipher</h3>
+
+    <input type="text" id="text" placeholder="Enter text">
+    <input type="number" id="rails" placeholder="Enter number of rails">
+
+    <button onclick="encrypt()">Encrypt</button>
+    <button onclick="decrypt()">Decrypt</button>
+
+    <p><b>Output:</b></p>
+    <p id="output"></p>
+</div>
+
+<script>
+
+// Encryption (Zig-Zag pattern)
+function encrypt() {
+    let text = document.getElementById("text").value;
+    let rails = parseInt(document.getElementById("rails").value);
+
+    if (rails <= 1) {
+        document.getElementById("output").innerText = text;
+        return;
+    }
+
+    let fence = Array.from({ length: rails }, () => []);
+    let row = 0, dir = 1;
+
+    for (let char of text) {
+        fence[row].push(char);
+        row += dir;
+
+        if (row === 0 || row === rails - 1) dir *= -1;
+    }
+
+    let result = fence.flat().join("");
+    document.getElementById("output").innerText = result;
+}
+
+
+// Decryption (Reverse Zig-Zag)
+function decrypt() {
+    let cipher = document.getElementById("text").value;
+    let rails = parseInt(document.getElementById("rails").value);
+
+    if (rails <= 1) {
+        document.getElementById("output").innerText = cipher;
+        return;
+    }
+
+    let pattern = Array.from({ length: rails }, () => []);
+    let row = 0, dir = 1;
+
+    // Step 1: Mark pattern
+    for (let i = 0; i < cipher.length; i++) {
+        pattern[row].push('*');
+        row += dir;
+
+        if (row === 0 || row === rails - 1) dir *= -1;
+    }
+
+    // Step 2: Fill letters
+    let index = 0;
+    for (let i = 0; i < rails; i++) {
+        for (let j = 0; j < pattern[i].length; j++) {
+            pattern[i][j] = cipher[index++];
+        }
+    }
+
+    // Step 3: Read zig-zag
+    let result = "";
+    row = 0; dir = 1;
+
+    for (let i = 0; i < cipher.length; i++) {
+        result += pattern[row].shift();
+        row += dir;
+
+        if (row === 0 || row === rails - 1) dir *= -1;
+    }
+
+    document.getElementById("output").innerText = result;
+}
+
+</script>
+
+</body>
+</html>

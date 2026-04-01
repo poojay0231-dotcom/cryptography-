@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Diffie-Hellman Key Exchange</title>
+<style>
+    body {
+        font-family: Arial;
+        background: #f4f4f4;
+        padding: 20px;
+    }
+    .container {
+        max-width: 500px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    input, button {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+    }
+    .output {
+        margin-top: 20px;
+        background: #eee;
+        padding: 10px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Diffie-Hellman Key Exchange</h2>
+
+    <label>Prime Number (q):</label>
+    <input type="number" id="q">
+
+    <label>Private Key (XA):</label>
+    <input type="number" id="xa">
+
+    <label>Private Key (XB):</label>
+    <input type="number" id="xb">
+
+    <p><strong>Constraints:</strong></p>
+    <ul>
+        <li>q must be a prime number</li>
+        <li>1 &lt; XA, XB &lt; q</li>
+    </ul>
+
+    <button onclick="generateKeys()">Generate Key</button>
+
+    <div class="output" id="output"></div>
+</div>
+
+<script>
+// Check if number is prime
+function isPrime(n) {
+    if (n <= 1) return false;
+    for (let i = 2; i <= Math.sqrt(n); i++) {
+        if (n % i === 0) return false;
+    }
+    return true;
+}
+
+// Find primitive root
+function findPrimitiveRoot(p) {
+    let requiredSet = new Set();
+    for (let i = 1; i < p; i++) {
+        requiredSet.add(i);
+    }
+
+    for (let g = 2; g < p; g++) {
+        let actualSet = new Set();
+        for (let k = 1; k < p; k++) {
+            actualSet.add(powerMod(g, k, p));
+        }
+        if (requiredSet.size === actualSet.size &&
+            [...requiredSet].every(v => actualSet.has(v))) {
+            return g;
+        }
+    }
+    return null;
+}
+
+// Modular exponentiation
+function powerMod(base, exp, mod) {
+    let result = 1;
+    base = base % mod;
+
+    while (exp > 0) {
+        if (exp % 2 === 1)
+            result = (result * base) % mod;
+
+        exp = Math.floor(exp / 2);
+        base = (base * base) % mod;
+    }
+    return result;
+}
+
+// Main function
+function generateKeys() {
+    let q = parseInt(document.getElementById("q").value);
+    let xa = parseInt(document.getElementById("xa").value);
+    let xb = parseInt(document.getElementById("xb").value);
+    let output = document.getElementById("output");
+
+    // Validation
+    if (!isPrime(q)) {
+        output.innerHTML = "❌ q must be a prime number.";
+        return;
+    }
+
+    if (xa <= 1 || xa >= q || xb <= 1 || xb >= q) {
+        output.innerHTML = "❌ Private keys must satisfy: 1 < XA, XB < q";
+        return;
+    }
+
+    let a = findPrimitiveRoot(q);
+    if (!a) {
+        output.innerHTML = "❌ Could not find primitive root.";
+        return;
+    }
+
+    // Public keys
+    let YA = powerMod(a, xa, q);
+    let YB = powerMod(a, xb, q);
+
+    // Shared keys
+    let KA = powerMod(YB, xa, q);
+    let KB = powerMod(YA, xb, q);
+
+    output.innerHTML = `
+        <b>Primitive Root (auto-selected):</b> ${a} <br><br>
+        <b>Public Keys:</b><br>
+        YA = ${YA}<br>
+        YB = ${YB}<br><br>
+
+        <b>Shared Key:</b><br>
+        KA = ${KA}<br>
+        KB = ${KB}<br><br>
+
+        <b style="color:green;">
+        ${KA === KB ? "✔ Keys Match!" : "✖ Keys Do Not Match"}
+        </b>
+    `;
+}
+</script>
+
+</body>
+</html>

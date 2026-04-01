@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Caesar Cipher</title>
+<style>
+    body { font-family: Arial; background:#f2f2f2; display:flex; justify-content:center; padding:40px;}
+    .box { background:white; padding:20px; border-radius:10px; width:300px; box-shadow:0 0 10px #ccc;}
+    input, button { width:100%; padding:8px; margin:8px 0;}
+    button { background:#007bff; color:white; border:none; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="box">
+    <h3>Caesar Cipher</h3>
+
+    <input type="text" id="text" placeholder="Enter text">
+    <input type="number" id="key" placeholder="Enter key (k)">
+
+    <button onclick="encrypt()">Encrypt</button>
+    <button onclick="decrypt()">Decrypt</button>
+
+    <p><b>Output:</b></p>
+    <p id="output"></p>
+</div>
+
+<script>
+
+// Encryption Formula: C = (P + k) mod 26
+function encrypt() {
+    let text = document.getElementById("text").value;
+    let k = parseInt(document.getElementById("key").value);
+    let result = "";
+
+    for (let i = 0; i < text.length; i++) {
+        let ch = text[i];
+
+        if (ch.match(/[a-z]/i)) {
+            let code = text.charCodeAt(i);
+            let base = (code >= 65 && code <= 90) ? 65 : 97;
+
+            // Formula used here
+            let newChar = ((code - base + k) % 26) + base;
+
+            result += String.fromCharCode(newChar);
+        } else {
+            result += ch;
+        }
+    }
+
+    document.getElementById("output").innerText = result;
+}
+
+// Decryption Formula: P = (C - k) mod 26
+function decrypt() {
+    let text = document.getElementById("text").value;
+    let k = parseInt(document.getElementById("key").value);
+    let result = "";
+
+    for (let i = 0; i < text.length; i++) {
+        let ch = text[i];
+
+        if (ch.match(/[a-z]/i)) {
+            let code = text.charCodeAt(i);
+            let base = (code >= 65 && code <= 90) ? 65 : 97;
+
+            // Formula used here
+            let newChar = ((code - base - k + 26) % 26) + base;
+
+            result += String.fromCharCode(newChar);
+        } else {
+            result += ch;
+        }
+    }
+
+    document.getElementById("output").innerText = result;
+}
+
+</script>
+
+</body>
+</html>
